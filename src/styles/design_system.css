@@ -1,0 +1,250 @@
+:root {
+  /* Material You Dark Palette */
+  --bg-core: #131316;
+  /* Surface 1 */
+  --bg-surface: #1E1E24;
+  /* Surface 2 (Cards) */
+  --bg-elevated: #2B2B32;
+  /* Surface 3 (Modals/Hovers) */
+
+  /* Accent Colors (Pastel Neon - Google Style) */
+  --primary: #BCC2FF;
+  /* Periwinkle */
+  --on-primary: #1F2555;
+  --secondary: #D0BCFF;
+  --tertiary: #A5F0DF;
+  /* Mint */
+  --error: #FFB4AB;
+  --success: #B3F2C3;
+
+  /* Text */
+  --text-primary: #EBEBEF;
+  --text-secondary: #C6C6CA;
+  --text-tertiary: #909094;
+
+  --font-family: 'Outfit', sans-serif;
+
+  /* Shapes & Spacing */
+  --radius-full: 999px;
+  /* Pill shape */
+  --radius-xl: 32px;
+  /* Google Cards */
+  --radius-lg: 24px;
+  --radius-md: 16px;
+
+  /* Dimensions */
+  --sidebar-width: 96px;
+  /* Material Rail standard */
+
+  /* Tablet-optimized spacing */
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-2xl: 64px;
+
+  /* Tablet grid templates */
+  --grid-2-col: repeat(2, 1fr);
+  --grid-3-col: repeat(3, 1fr);
+  --grid-4-col: repeat(4, 1fr);
+
+  /* Enhanced touch targets for tablet */
+  --min-touch-size: 48px;
+  --touch-comfortable: 56px;
+
+  /* Motion (Spring Physics) */
+  --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+  /* Bouncy */
+  --transition-smooth: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+body {
+  background-color: var(--bg-core);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(188, 194, 255, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(165, 240, 223, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(208, 188, 255, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(31, 37, 85, 0.3) 0px, transparent 50%);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+/* Noise Overlay */
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* Base Components */
+.google-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+}
+
+.google-card:active {
+  transform: scale(0.98);
+}
+
+.google-input {
+  background: var(--bg-elevated);
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 16px 24px;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  transition: var(--transition-smooth);
+}
+
+.google-input:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+  background: rgba(188, 194, 255, 0.05);
+}
+
+.fab-btn {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  /* FAB specific squircle */
+  padding: 16px 32px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  transition: var(--transition-spring);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fab-btn:active {
+  transform: scale(0.93);
+}
+
+.nav-pill {
+  width: 56px;
+  height: 32px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.nav-pill.active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.text-display {
+  font-size: 3rem;
+  font-weight: 400;
+  letter-spacing: -1px;
+}
+
+.text-headline {
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.text-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.text-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Tablet-Optimized Utility Classes */
+.pro-glass {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Typography for 10-inch Screens */
+.title-xl {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.title-lg {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.title-md {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Tablet Grid Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: var(--grid-2-col);
+  gap: var(--spacing-md);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: var(--grid-3-col);
+  gap: var(--spacing-md);
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: var(--grid-4-col);
+  gap: var(--spacing-md);
+}
+
+/* Touch-friendly buttons */
+.touch-target {
+  min-width: var(--min-touch-size);
+  min-height: var(--min-touch-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.touch-comfortable {
+  min-width: var(--touch-comfortable);
+  min-height: var(--touch-comfortable);
+}
