@@ -4,7 +4,7 @@ import { Plus, Minus, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const StockUpdate = () => {
-    const { items, addItem, updateStock } = useStore();
+    const { items, addItem, updateStock, setStockValue } = useStore();
     const [showAdd, setShowAdd] = useState(false);
     const [newItem, setNewItem] = useState({ name: '', price: '', stock: '' });
 
@@ -22,7 +22,7 @@ const StockUpdate = () => {
     };
 
     return (
-        <div style={{ padding: '40px', height: '100%', overflowY: 'auto' }}>
+        <div style={{ padding: '40px', height: '100%', overflowY: 'auto', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
                 <div>
                     <h1 className="text-headline" style={{ margin: 0 }}>Inventory</h1>
@@ -77,7 +77,23 @@ const StockUpdate = () => {
                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>STOCK LEVEL</span>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <motion.button whileTap={{ scale: 0.8 }} onClick={() => updateStock(item.id, -1)} className="nav-pill" style={{ width: '32px', height: '32px', background: 'var(--bg-elevated)' }}><Minus size={14} /></motion.button>
-                                        <span style={{ fontSize: '1.1rem', fontWeight: 700, minWidth: '30px', textAlign: 'center' }}>{item.stock || 0}</span>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            value={item.stock || 0}
+                                            onChange={(e) => setStockValue(item.id, e.target.value)}
+                                            style={{
+                                                fontSize: '1.2rem',
+                                                fontWeight: 700,
+                                                width: '60px',
+                                                textAlign: 'center',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                borderBottom: '1px solid rgba(255,255,255,0.1)',
+                                                color: 'var(--text-primary)',
+                                                padding: '4px'
+                                            }}
+                                        />
                                         <motion.button whileTap={{ scale: 0.8 }} onClick={() => updateStock(item.id, 5)} className="nav-pill" style={{ width: '32px', height: '32px', background: 'var(--primary)', color: 'var(--on-primary)' }}><Plus size={14} /></motion.button>
                                     </div>
                                 </div>

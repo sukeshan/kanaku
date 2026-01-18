@@ -89,6 +89,15 @@ export const StoreProvider = ({ children }) => {
     }));
   }, []);
 
+  const setStockValue = useCallback((itemId, value) => {
+    setItems(prevItems => prevItems.map(item => {
+      if (item.id === itemId) {
+        return { ...item, stock: Math.max(0, Number(value)) };
+      }
+      return item;
+    }));
+  }, []);
+
   // Detect device name from user agent
   const getDeviceName = () => {
     const ua = navigator.userAgent;
@@ -222,7 +231,7 @@ export const StoreProvider = ({ children }) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `kanaku_orders_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `kanaku_full_history_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -271,12 +280,13 @@ export const StoreProvider = ({ children }) => {
     addItem,
     addOrder,
     updateStock,
+    setStockValue,
     addUser,
     editUser,
     deleteUser,
     exportOrdersToCSV,
     exportItemsToCSV
-  }), [items, orders, users, currentUser, addItem, addOrder, updateStock, addUser, editUser, deleteUser, exportOrdersToCSV, exportItemsToCSV]);
+  }), [items, orders, users, currentUser, addItem, addOrder, updateStock, setStockValue, addUser, editUser, deleteUser, exportOrdersToCSV, exportItemsToCSV]);
 
   return (
     <StoreContext.Provider value={contextValue}>

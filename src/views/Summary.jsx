@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import { Calendar, TrendingUp, Activity, ArrowUpRight, Download } from 'lucide-react';
+import OrderDetailModal from '../components/OrderDetailModal';
 
 const Summary = () => {
     const { orders, exportOrdersToCSV, exportItemsToCSV } = useStore();
+    const [selectedOrder, setSelectedOrder] = useState(null);
 
     const analytics = useMemo(() => {
         const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
@@ -60,37 +62,53 @@ const Summary = () => {
 
         const randomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-        // Create orders for each day in the last 90 days
-        for (let daysAgo = 0; daysAgo < 90; daysAgo++) {
-            // More orders on weekends, fewer on Mondays
+        // Create orders for each day in the last 365 days
+        for (let daysAgo = 0; daysAgo < 365; daysAgo++) {
             const date = new Date(now);
             date.setDate(date.getDate() - daysAgo);
             const dayOfWeek = date.getDay();
+            const month = date.getMonth(); // 0-11
 
-            // Base orders: 2-5 per day, more on weekends
-            let ordersForDay = 2 + Math.floor(Math.random() * 4);
-            if (dayOfWeek === 0 || dayOfWeek === 6) ordersForDay += 2; // Weekend boost
-            if (dayOfWeek === 1) ordersForDay = Math.max(1, ordersForDay - 1); // Monday slowdown
+            // Base orders: 2-5 per day, increasing slightly over the year (growth trend)
+            // Growth factor: 0.5 (start of year) -> 1.5 (end of year)
+            const yearProgress = 1 - (daysAgo / 365);
+            const growthFactor = 0.5 + yearProgress;
 
-            // Recent days have more orders (simulate growth)
-            if (daysAgo < 7) ordersForDay += 2;
-            if (daysAgo < 14) ordersForDay += 1;
+            let ordersForDay = Math.floor((3 + Math.random() * 5) * growthFactor);
 
-            // Special boost for 10th of each month (15+ orders)
-            if (date.getDate() === 10) ordersForDay = 15 + Math.floor(Math.random() * 5);
+            // Weekend boost
+            if (dayOfWeek === 0 || dayOfWeek === 6) ordersForDay += Math.floor(3 * growthFactor);
+            // Monday slowdown
+            if (dayOfWeek === 1) ordersForDay = Math.max(1, ordersForDay - 1);
 
-            // Also boost today and yesterday for testing
-            if (daysAgo === 0) ordersForDay = 10 + Math.floor(Math.random() * 5);
-            if (daysAgo === 1) ordersForDay = 8 + Math.floor(Math.random() * 4);
+            // Seasonal Spikes
+            // Winter (Dec/Jan): +40%
+            if (month === 11 || month === 0) ordersForDay = Math.floor(ordersForDay * 1.4);
+            // Summer (May/Jun): +20%
+            if (month === 4 || month === 5) ordersForDay = Math.floor(ordersForDay * 1.2);
+
+            // Recent days have more orders (simulate recent virality/growth)
+            if (daysAgo < 30) ordersForDay += 5;
+            if (daysAgo < 7) ordersForDay += 5;
+
+            // Special boost for 10th of each month (Payday spike)
+            if (date.getDate() === 10) ordersForDay = Math.max(ordersForDay, 20 + Math.floor(Math.random() * 10));
+
+            // Today: Heavy activity for Live Feed testing
+            if (daysAgo === 0) ordersForDay = 25 + Math.floor(Math.random() * 10);
 
             for (let orderIdx = 0; orderIdx < ordersForDay; orderIdx++) {
                 const orderDate = new Date(date);
                 // Peak hours: 8-10am, 12-2pm, 4-6pm
                 const peakHours = [8, 9, 10, 12, 13, 14, 16, 17, 18];
-                const hour = Math.random() > 0.3 ? peakHours[Math.floor(Math.random() * peakHours.length)] : 8 + Math.floor(Math.random() * 12);
-                orderDate.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
+                const hour = Math.random() > 0.3 ? peakHours[Math.floor(Math.random() * peakHours.length)] : 8 + Math.floor(Math.random() * 13);
+                const minute = Math.floor(Math.random() * 60);
+                orderDate.setHours(hour, minute, 0, 0);
 
-                const numItems = 1 + Math.floor(Math.random() * 4);
+                // Don't generate future orders for today
+                if (daysAgo === 0 && orderDate > now) continue;
+
+                const numItems = 1 + Math.floor(Math.random() * 5); // Larger baskets
                 const orderItems = [];
                 let total = 0;
 
@@ -106,7 +124,8 @@ const Summary = () => {
                     timestamp: orderDate.toISOString(),
                     items: orderItems,
                     total,
-                    user: randomItem(users)
+                    user: randomItem(users),
+                    device: Math.random() > 0.7 ? 'Mobile Order' : 'POS Terminal'
                 });
             }
         }
@@ -118,7 +137,7 @@ const Summary = () => {
         localStorage.setItem('kanaku_users', JSON.stringify(users));
 
         const totalRevenue = newOrders.reduce((sum, o) => sum + o.total, 0);
-        alert(`✅ Generated ${newOrders.length} orders across 90 days!\n💰 Total revenue: ₹${totalRevenue.toLocaleString()}\n📊 Covers ~12 weeks & 3 months\n\nRefreshing page...`);
+        alert(`✅ Generated ${newOrders.length} orders across 365 days!\n💰 Total revenue: ₹${totalRevenue.toLocaleString()}\n📊 Covers 1 year with seasonal trends\n\nRefreshing page...`);
         window.location.reload();
     };
 
@@ -207,14 +226,22 @@ const Summary = () => {
                     )}
                 </div>
 
-                <div className="pro-glass" style={{ padding: '32px', display: 'flex', flexDirection: 'column' }}>
+                <div className="pro-glass" style={{ padding: '32px', display: 'flex', flexDirection: 'column', height: '420px' }}>
                     <h3 className="title-lg" style={{ marginTop: 0, marginBottom: '24px' }}>Live Activity Feed</h3>
-                    <div style={{ flex: 1, overflowY: 'auto' }}>
-                        {orders.slice(0, 15).map((o, idx) => (
-                            <div key={idx} style={{
-                                display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0',
-                                borderBottom: '1px solid rgba(255,255,255,0.05)'
-                            }}>
+                    <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+                        {orders.slice(0, 50).map((o, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => setSelectedOrder(o)}
+                                style={{
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0',
+                                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
                                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         <ArrowUpRight size={18} color="var(--success)" />
@@ -234,6 +261,12 @@ const Summary = () => {
                     </div>
                 </div>
             </div>
+
+            <OrderDetailModal
+                isOpen={!!selectedOrder}
+                onClose={() => setSelectedOrder(null)}
+                order={selectedOrder}
+            />
         </div>
     );
 };

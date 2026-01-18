@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Clock } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ShoppingBag, IndianRupee, Clock } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import { Bar, Doughnut } from 'react-chartjs-2';
 
@@ -153,7 +153,7 @@ const DayDetail = ({ date, onBack }) => {
                 <KPICard
                     label="Total Revenue"
                     value={`₹${analytics.totalRevenue}`}
-                    icon={<DollarSign color="var(--success)" />}
+                    icon={<IndianRupee color="var(--success)" />}
                 />
                 <KPICard
                     label="Total Orders"

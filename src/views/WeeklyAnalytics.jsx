@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ShoppingBag, IndianRupee, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -196,7 +196,7 @@ const WeekDetail = ({ week, weeks, onBack }) => {
 
             {/* KPIs */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                <KPICard label="Total Revenue" value={`₹${week.revenue.toLocaleString()}`} icon={<DollarSign color="var(--success)" />} />
+                <KPICard label="Total Revenue" value={`₹${week.revenue.toLocaleString()}`} icon={<IndianRupee color="var(--success)" />} />
                 <KPICard label="Total Orders" value={week.orderCount} icon={<ShoppingBag color="var(--primary)" />} />
                 <KPICard label="Avg Order Value" value={`₹${Math.round(week.revenue / week.orderCount)}`} icon={<TrendingUp color="var(--warning)" />} />
                 <KPICard label="Peak Day" value={analytics.peakDay.day} icon={<Calendar color="var(--info)" />} subtitle={`₹${analytics.peakDay.revenue}`} />

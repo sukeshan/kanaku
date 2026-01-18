@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
-import { TrendingUp, ShoppingBag, DollarSign, Package, Calendar, BarChart3, TrendingDown } from 'lucide-react';
+import { TrendingUp, ShoppingBag, IndianRupee, Package, Calendar, BarChart3, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AnalyticsCalendar from './AnalyticsCalendar';
 import WeeklyAnalytics from './WeeklyAnalytics';
@@ -64,105 +64,105 @@ const AnalyticsHub = () => {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             <div style={{ flex: 1, overflowY: 'auto', padding: '40px', minHeight: 0 }}>
-            {/* Header */}
-            <h1 className="title-xl" style={{ marginBottom: '24px' }}>Analytics Dashboard</h1>
+                {/* Header */}
+                <h1 className="title-xl" style={{ marginBottom: '24px' }}>Analytics Dashboard</h1>
 
-            {/* Overview KPI Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                <KPICard
-                    label="Total Revenue"
-                    value={`₹${overviewMetrics.totalRevenue.toLocaleString()}`}
-                    icon={<DollarSign size={20} color="var(--success)" />}
-                    subtitle="All Time"
-                />
-                <KPICard
-                    label="Total Orders"
-                    value={overviewMetrics.totalOrders}
-                    icon={<ShoppingBag size={20} color="var(--primary)" />}
-                    subtitle="All Time"
-                />
-                <KPICard
-                    label="Avg Order Value"
-                    value={`₹${Math.round(overviewMetrics.avgOrderValue)}`}
-                    icon={<TrendingUp size={20} color="var(--warning)" />}
-                    subtitle="Average"
-                />
-                <KPICard
-                    label="Weekly Growth"
-                    value={`${overviewMetrics.growth > 0 ? '+' : ''}${overviewMetrics.growth.toFixed(1)}%`}
-                    icon={overviewMetrics.growth >= 0
-                        ? <TrendingUp size={20} color="var(--success)" />
-                        : <TrendingDown size={20} color="var(--error)" />
-                    }
-                    subtitle="vs Last Week"
-                    highlight={Math.abs(overviewMetrics.growth) > 10}
-                />
-            </div>
-
-            {/* Insights Banner */}
-            {overviewMetrics.insights.length > 0 && (
-                <div className="pro-glass" style={{ padding: '20px', marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                        <BarChart3 size={20} color="var(--primary)" />
-                        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Key Insights</h3>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {overviewMetrics.insights.slice(0, 3).map((insight, idx) => (
-                            <div
-                                key={idx}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    padding: '12px',
-                                    background: 'rgba(255, 255, 255, 0.03)',
-                                    borderRadius: '12px',
-                                    borderLeft: `3px solid ${insight.type === 'success' ? 'var(--success)' :
-                                        insight.type === 'warning' ? 'var(--warning)' :
-                                            'var(--primary)'
-                                        }`
-                                }}
-                            >
-                                <span style={{ fontSize: '1.2rem' }}>
-                                    {insight.type === 'success' ? '✅' : insight.type === 'warning' ? '⚠️' : 'ℹ️'}
-                                </span>
-                                <span>{insight.message}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* View Tabs */}
-            <div style={{ marginBottom: '32px' }}>
-                <div style={{ display: 'flex', gap: '8px', padding: '8px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '16px', width: 'fit-content' }}>
-                    <ViewTab
-                        active={activeView === 'daily'}
-                        onClick={() => setActiveView('daily')}
-                        icon={<Calendar size={18} />}
-                        label="Daily"
+                {/* Overview KPI Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                    <KPICard
+                        label="Total Revenue"
+                        value={`₹${overviewMetrics.totalRevenue.toLocaleString()}`}
+                        icon={<IndianRupee size={20} color="var(--success)" />}
+                        subtitle="All Time"
                     />
-                    <ViewTab
-                        active={activeView === 'weekly'}
-                        onClick={() => setActiveView('weekly')}
-                        icon={<BarChart3 size={18} />}
-                        label="Weekly"
+                    <KPICard
+                        label="Total Orders"
+                        value={overviewMetrics.totalOrders}
+                        icon={<ShoppingBag size={20} color="var(--primary)" />}
+                        subtitle="All Time"
                     />
-                    <ViewTab
-                        active={activeView === 'monthly'}
-                        onClick={() => setActiveView('monthly')}
-                        icon={<Package size={18} />}
-                        label="Monthly"
+                    <KPICard
+                        label="Avg Order Value"
+                        value={`₹${Math.round(overviewMetrics.avgOrderValue)}`}
+                        icon={<TrendingUp size={20} color="var(--warning)" />}
+                        subtitle="Average"
+                    />
+                    <KPICard
+                        label="Weekly Growth"
+                        value={`${overviewMetrics.growth > 0 ? '+' : ''}${overviewMetrics.growth.toFixed(1)}%`}
+                        icon={overviewMetrics.growth >= 0
+                            ? <TrendingUp size={20} color="var(--success)" />
+                            : <TrendingDown size={20} color="var(--error)" />
+                        }
+                        subtitle="vs Last Week"
+                        highlight={Math.abs(overviewMetrics.growth) > 10}
                     />
                 </div>
-            </div>
 
-            {/* View Content */}
-            <div style={{ paddingBottom: '40px' }}>
-                {activeView === 'daily' && <AnalyticsCalendar />}
-                {activeView === 'weekly' && <WeeklyAnalytics />}
-                {activeView === 'monthly' && <MonthlyAnalytics />}
-            </div>
+                {/* Insights Banner */}
+                {overviewMetrics.insights.length > 0 && (
+                    <div className="pro-glass" style={{ padding: '20px', marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                            <BarChart3 size={20} color="var(--primary)" />
+                            <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Key Insights</h3>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {overviewMetrics.insights.slice(0, 3).map((insight, idx) => (
+                                <div
+                                    key={idx}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px',
+                                        padding: '12px',
+                                        background: 'rgba(255, 255, 255, 0.03)',
+                                        borderRadius: '12px',
+                                        borderLeft: `3px solid ${insight.type === 'success' ? 'var(--success)' :
+                                            insight.type === 'warning' ? 'var(--warning)' :
+                                                'var(--primary)'
+                                            }`
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1.2rem' }}>
+                                        {insight.type === 'success' ? '✅' : insight.type === 'warning' ? '⚠️' : 'ℹ️'}
+                                    </span>
+                                    <span>{insight.message}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* View Tabs */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', gap: '8px', padding: '8px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '16px', width: 'fit-content' }}>
+                        <ViewTab
+                            active={activeView === 'daily'}
+                            onClick={() => setActiveView('daily')}
+                            icon={<Calendar size={18} />}
+                            label="Daily"
+                        />
+                        <ViewTab
+                            active={activeView === 'weekly'}
+                            onClick={() => setActiveView('weekly')}
+                            icon={<BarChart3 size={18} />}
+                            label="Weekly"
+                        />
+                        <ViewTab
+                            active={activeView === 'monthly'}
+                            onClick={() => setActiveView('monthly')}
+                            icon={<Package size={18} />}
+                            label="Monthly"
+                        />
+                    </div>
+                </div>
+
+                {/* View Content */}
+                <div style={{ paddingBottom: '40px' }}>
+                    {activeView === 'daily' && <AnalyticsCalendar />}
+                    {activeView === 'weekly' && <WeeklyAnalytics />}
+                    {activeView === 'monthly' && <MonthlyAnalytics />}
+                </div>
             </div>
         </div>
     );

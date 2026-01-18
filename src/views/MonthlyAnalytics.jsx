@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
-import { ArrowLeft, TrendingUp, ShoppingBag, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, TrendingUp, ShoppingBag, IndianRupee, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Line, Doughnut } from 'react-chartjs-2';
 import {
@@ -196,7 +196,7 @@ const MonthDetail = ({ month, months, onBack }) => {
 
             {/* KPIs */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-                <KPICard label="Total Revenue" value={`₹${month.revenue.toLocaleString()}`} icon={<DollarSign color="var(--success)" />} />
+                <KPICard label="Total Revenue" value={`₹${month.revenue.toLocaleString()}`} icon={<IndianRupee color="var(--success)" />} />
                 <KPICard label="Total Orders" value={month.orderCount} icon={<ShoppingBag color="var(--primary)" />} />
                 <KPICard label="Avg Order Value" value={`₹${Math.round(month.revenue / month.orderCount)}`} icon={<TrendingUp color="var(--warning)" />} />
                 <KPICard label="Best Day" value={analytics.bestDay.day ? `${month.date.toLocaleDateString('en-US', { month: 'short' })} ${analytics.bestDay.day}` : 'N/A'} icon={<Calendar color="var(--info)" />} subtitle={`₹${analytics.bestDay.revenue}`} />

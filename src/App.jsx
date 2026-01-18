@@ -27,19 +27,10 @@ function App() {
 
   return (
     <StoreProvider>
-      <div style={{ display: 'flex', height: '100vh', background: 'var(--bg-core)' }}>
+      <div className="app-container">
 
-        {/* Material Navigation Rail */}
-        <nav style={{
-          width: 'var(--sidebar-width)',
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '24px 0',
-          gap: '16px',
-          zIndex: 100
-        }}>
+        {/* Desktop Navigation Rail */}
+        <nav className="nav-rail">
           {/* Menu Button / Logo */}
           <div style={{ marginBottom: '24px' }}>
             <motion.button
@@ -73,14 +64,7 @@ function App() {
         </nav>
 
         {/* Main Content Area */}
-        <main style={{
-          flex: 1,
-          margin: '16px 16px 16px 0',
-          borderRadius: 'var(--radius-xl)',
-          overflow: 'hidden',
-          background: 'var(--bg-core)',
-          position: 'relative'
-        }}>
+        <main className="main-content">
           <Suspense fallback={<LoadingFallback />}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -99,6 +83,28 @@ function App() {
             </AnimatePresence>
           </Suspense>
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        <div className="mobile-bottom-nav">
+          <NavIcon icon={<Home size={22} />} label="Home" active={activeTab === 'summary'} onClick={() => setActiveTab('summary')} />
+          <NavIcon icon={<BarChart3 size={22} />} label="Data" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
+          <div style={{ position: 'relative', top: '-18px' }}>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setActiveTab('order')}
+              style={{
+                width: '56px', height: '56px', borderRadius: '50%',
+                background: 'var(--primary)', border: '4px solid var(--bg-core)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(108, 92, 231, 0.4)'
+              }}>
+              <ClipboardList size={24} color="#fff" />
+            </motion.button>
+          </div>
+          <NavIcon icon={<Package size={22} />} label="Stock" active={activeTab === 'stock'} onClick={() => setActiveTab('stock')} />
+          <NavIcon icon={<User size={22} />} label="Profile" active={false} onClick={() => { }} />
+        </div>
+
       </div>
     </StoreProvider>
   );
