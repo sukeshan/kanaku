@@ -5,7 +5,6 @@ const seedDummyOrders = () => {
     // Get existing data from localStorage
     const existingItems = JSON.parse(localStorage.getItem('kanaku_items') || '[]');
     const existingUsers = JSON.parse(localStorage.getItem('kanaku_users') || '[]');
-    const existingOrders = JSON.parse(localStorage.getItem('kanaku_orders') || '[]');
 
     // Sample items (use existing or create defaults)
     const items = existingItems.length > 0 ? existingItems : [

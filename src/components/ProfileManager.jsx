@@ -24,6 +24,15 @@ const ProfileManager = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    if (!currentUser) {
+        return (
+            <div style={{ padding: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} className="animate-pulse" />
+                <div style={{ flex: 1, height: '40px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }} className="animate-pulse" />
+            </div>
+        );
+    }
+
     const handleSwitchUser = (user) => {
         setCurrentUser(user);
         setShowMenu(false);

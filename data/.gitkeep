@@ -1,0 +1,2 @@
+# this file ensures the data directory is tracked by git
+# the actual CSV data file will be stored here

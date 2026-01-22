@@ -1,0 +1,16 @@
+[ITEMS]
+id,name,price,stock,count,color,imageUrl
+1,Masala Chai,15,100,0,#e0c097,
+2,Ginger Tea,20,48,0,#f7d794,
+3,Lemon Tea,20,40,0,#f8a5c2,
+4,Coffee,25,80,0,#774a38,
+5,Bun,10,30,0,#f3a683,
+6,Samosa,15,25,0,#e17055,
+
+[ORDERS]
+id,timestamp,items,total,user,device
+
+[USERS]
+id,name,avatar
+u1,Owner,👑
+u2,Staff 1,👨‍🍳

@@ -1,13 +1,66 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Doughnut, Bar } from 'react-chartjs-2';
-import { Calendar, TrendingUp, Activity, ArrowUpRight, Download } from 'lucide-react';
+import { Doughnut } from 'react-chartjs-2';
+import { Calendar, TrendingUp, Activity, ArrowUpRight, Download, Upload, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import OrderDetailModal from '../components/OrderDetailModal';
 
 const Summary = () => {
-    const { orders, exportOrdersToCSV, exportItemsToCSV } = useStore();
+    const {
+        orders,
+        exportOrdersToCSV,
+        exportItemsToCSV,
+        exportAllDataToCSV,
+        importDataFromCSV,
+        isServerAvailable,
+        isLoading,
+        lastSyncTime,
+        refreshFromServer
+    } = useStore();
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const fileInputRef = useRef(null);
 
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await refreshFromServer();
+        setIsRefreshing(false);
+    };
+
+    const handleImportCSV = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.csv')) {
+            alert('Please select a CSV file');
+            return;
+        }
+
+        const confirmed = window.confirm(
+            '⚠️ Importing a CSV will OVERWRITE all existing data (items, orders, users).\n\nAre you sure you want to continue?'
+        );
+
+        if (!confirmed) {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            return;
+        }
+
+        setIsImporting(true);
+        try {
+            const result = await importDataFromCSV(file);
+            if (result.success) {
+                alert(`✅ ${result.message}\n\nRefreshing page...`);
+                window.location.reload();
+            } else {
+                alert(`❌ ${result.message}`);
+            }
+        } catch (error) {
+            alert('❌ Failed to import CSV: ' + error.message);
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
     const analytics = useMemo(() => {
         const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
         const totalOrders = orders.length;
@@ -144,8 +197,72 @@ const Summary = () => {
     return (
         <div style={{ padding: '40px', overflowY: 'auto', height: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                <h1 className="title-xl" style={{ margin: 0 }}>Business Insights</h1>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <h1 className="title-xl" style={{ margin: 0 }}>Business Insights</h1>
+
+                    {/* Server Sync Status */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        background: isServerAvailable ? 'rgba(0, 206, 201, 0.1)' : 'rgba(255, 107, 107, 0.1)',
+                        color: isServerAvailable ? 'var(--success)' : 'var(--error)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600
+                    }}>
+                        {isLoading ? (
+                            <>
+                                <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                Loading...
+                            </>
+                        ) : isServerAvailable ? (
+                            <>
+                                <Cloud size={16} />
+                                Synced
+                                {lastSyncTime && (
+                                    <span style={{ opacity: 0.7, fontSize: '0.75rem' }}>
+                                        {lastSyncTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <CloudOff size={16} />
+                                Offline Mode
+                            </>
+                        )}
+                    </div>
+
+                    {/* Refresh Button */}
+                    {isServerAvailable && !isLoading && (
+                        <button
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                padding: '8px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            title="Refresh from server"
+                        >
+                            <RefreshCw
+                                size={18}
+                                style={{
+                                    animation: isRefreshing ? 'spin 1s linear infinite' : 'none'
+                                }}
+                            />
+                        </button>
+                    )}
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                     {orders.length === 0 && (
                         <button
                             onClick={seedDummyData}
@@ -155,6 +272,35 @@ const Summary = () => {
                             🎲 Generate Demo Data
                         </button>
                     )}
+
+                    {/* Export to Device - Backup before updating */}
+                    <button
+                        onClick={exportAllDataToCSV}
+                        className="fab-btn"
+                        style={{ background: 'var(--success)', padding: '12px 20px' }}
+                        title="Download backup to your device before updating"
+                    >
+                        <Download size={18} /> Export to Device
+                    </button>
+
+                    {/* Import from Device - Restore after updating */}
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="fab-btn"
+                        disabled={isImporting}
+                        style={{ background: 'var(--warning)', padding: '12px 20px' }}
+                        title="Upload data from your device after updating"
+                    >
+                        <Upload size={18} /> {isImporting ? 'Restoring...' : 'Import from Device'}
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv"
+                        onChange={handleImportCSV}
+                        style={{ display: 'none' }}
+                    />
+
                     {orders.length > 0 && (
                         <>
                             <button

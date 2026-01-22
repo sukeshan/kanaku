@@ -31,10 +31,26 @@ const MenuItem = memo(({ item, qty, updateQty, idx }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: 'auto' }}>
                 <div style={{
                     width: '48px', height: '48px', borderRadius: '16px',
-                    background: item.color,
+                    background: item.imageUrl ? 'transparent' : item.color,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1.5rem'
-                }}>✨</div>
+                    fontSize: '1.5rem',
+                    overflow: 'hidden'
+                }}>
+                    {item.imageUrl ? (
+                        <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '16px'
+                            }}
+                        />
+                    ) : (
+                        '✨'
+                    )}
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, color: stock < 10 ? 'var(--error)' : 'var(--success)' }}>
                         {isOutOfStock ? 'SOLD OUT' : `${stock} left`}
@@ -65,7 +81,10 @@ const MenuItem = memo(({ item, qty, updateQty, idx }) => {
         </motion.button>
     );
 }, (prevProps, nextProps) => {
-    return prevProps.qty === nextProps.qty && prevProps.item === nextProps.item && prevProps.item.stock === nextProps.item.stock;
+    return prevProps.qty === nextProps.qty &&
+        prevProps.item === nextProps.item &&
+        prevProps.item.stock === nextProps.item.stock &&
+        prevProps.item.imageUrl === nextProps.item.imageUrl;
 });
 
 export default MenuItem;

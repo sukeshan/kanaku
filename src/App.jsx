@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense, memo } from 'react';
-import { Home, ClipboardList, Package, User, BarChart3 } from 'lucide-react';
+import { Home, ClipboardList, Package, User, BarChart3, LogOut } from 'lucide-react';
 import { StoreProvider } from './context/StoreContext';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -22,8 +22,33 @@ const LoadingFallback = () => (
   </div>
 );
 
+import Login from './components/Login';
+
 function App() {
   const [activeTab, setActiveTab] = useState('order');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('kanaku_auth') === 'true';
+  });
+
+  const handleLogin = () => {
+    localStorage.setItem('kanaku_auth', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    console.log('App: Handle logout triggered');
+    const confirmed = window.confirm('Are you sure you want to logout?');
+    console.log('App: Logout confirmed?', confirmed);
+    if (confirmed) {
+      localStorage.removeItem('kanaku_auth');
+      setIsAuthenticated(false);
+      console.log('App: Logged out');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <StoreProvider>
@@ -51,7 +76,36 @@ function App() {
           <NavIcon icon={<ClipboardList size={24} />} label="Order" active={activeTab === 'order'} onClick={() => setActiveTab('order')} />
           <NavIcon icon={<Package size={24} />} label="Stock" active={activeTab === 'stock'} onClick={() => setActiveTab('stock')} />
 
-          <div style={{ marginTop: 'auto' }}>
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', flexShrink: 0, marginBottom: '20px' }}>
+            {/* Logout Button */}
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Logout"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                border: 'none',
+                background: 'rgba(255, 107, 107, 0.1)',
+                color: 'var(--error)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'transform 0.1s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.9)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1.1)'}
+            >
+              <LogOut size={20} />
+            </button>
+
+
+            {/* User Avatar */}
             <motion.div
               whileHover={{ scale: 1.1 }}
               style={{ width: '44px', height: '44px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--bg-elevated)' }}
@@ -102,7 +156,27 @@ function App() {
             </motion.button>
           </div>
           <NavIcon icon={<Package size={22} />} label="Stock" active={activeTab === 'stock'} onClick={() => setActiveTab('stock')} />
-          <NavIcon icon={<User size={22} />} label="Profile" active={false} onClick={() => { }} />
+          <button
+            onClick={handleLogout}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              cursor: 'pointer',
+              color: 'var(--error)',
+              padding: '8px'
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Logout</span>
+          </button>
         </div>
 
       </div>
