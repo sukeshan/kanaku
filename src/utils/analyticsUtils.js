@@ -113,7 +113,8 @@ export const comparePeriods = (periodA, periodB) => {
 export const rankItemsBySales = (orders) => {
     const itemCounts = {};
     orders.forEach(order => {
-        order.items.forEach(item => {
+        const orderItems = Array.isArray(order.items) ? order.items : [];
+        orderItems.forEach(item => {
             if (!itemCounts[item.name]) {
                 itemCounts[item.name] = { name: item.name, quantity: 0, revenue: 0 };
             }
@@ -129,7 +130,8 @@ export const rankItemsBySales = (orders) => {
 export const rankItemsByRevenue = (orders) => {
     const itemCounts = {};
     orders.forEach(order => {
-        order.items.forEach(item => {
+        const orderItems = Array.isArray(order.items) ? order.items : [];
+        orderItems.forEach(item => {
             if (!itemCounts[item.name]) {
                 itemCounts[item.name] = { name: item.name, quantity: 0, revenue: 0 };
             }
@@ -173,7 +175,8 @@ export const calculateSalesVelocity = (itemName, orders, days = 7) => {
 
     let totalQty = 0;
     recentOrders.forEach(order => {
-        order.items.forEach(item => {
+        const orderItems = Array.isArray(order.items) ? order.items : [];
+        orderItems.forEach(item => {
             if (item.name === itemName) {
                 totalQty += item.qty;
             }

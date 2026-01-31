@@ -29,8 +29,8 @@ class ErrorBoundary extends React.Component {
     handleReset = () => {
         // Try to clear local storage if it's potentially corrupted data causing the crash
         if (window.confirm('Resetting app data can fix crash loops. This will NOT delete your cloud data if synced. Continue?')) {
-            localStorage.clear();
-            window.location.reload();
+        localStorage.clear();
+        window.location.reload();
         }
     };
 

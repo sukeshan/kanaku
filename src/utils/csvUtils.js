@@ -51,11 +51,15 @@ const parseCSVSection = (csvString) => {
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1);
       }
+      // Unescape double quotes (CSV uses "" to represent a single ")
+      value = value.replace(/""/g, '"');
+
       // Try to parse JSON for complex fields
       if ((header === 'items' || header === 'user') && value) {
         try {
           obj[header] = JSON.parse(value);
-        } catch {
+        } catch (e) {
+          console.warn('Failed to parse JSON for', header, ':', e.message, 'Value:', value.substring(0, 100));
           obj[header] = value;
         }
       } else if (header === 'price' || header === 'stock' || header === 'count' || header === 'total') {

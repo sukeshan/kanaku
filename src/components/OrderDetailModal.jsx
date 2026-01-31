@@ -126,10 +126,10 @@ const OrderDetailModal = ({ isOpen, onClose, order }) => {
                                 {/* Items List */}
                                 <div style={{ marginBottom: '24px' }}>
                                     <h4 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <ShoppingBag size={14} /> Items ({order.items.length})
+                                        <ShoppingBag size={14} /> Items ({Array.isArray(order.items) ? order.items.length : 0})
                                     </h4>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                        {order.items.map((item, idx) => (
+                                        {(Array.isArray(order.items) ? order.items : []).map((item, idx) => (
                                             <div key={idx} style={{
                                                 display: 'flex',
                                                 justifyContent: 'space-between',

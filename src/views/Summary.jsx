@@ -1,33 +1,103 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Doughnut } from 'react-chartjs-2';
-import { Calendar, TrendingUp, Activity, ArrowUpRight, Download, Upload, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Calendar, TrendingUp, Activity, ArrowUpRight, Download, Upload, Cloud, CloudOff, RefreshCw, Trash2 } from 'lucide-react';
 import OrderDetailModal from '../components/OrderDetailModal';
+import PasswordModal from '../components/PasswordModal';
+
+const ADMIN_PASSWORD = 'admin';
 
 const Summary = () => {
     const {
         orders,
-        exportOrdersToCSV,
-        exportItemsToCSV,
         exportAllDataToCSV,
         importDataFromCSV,
         isServerAvailable,
         isLoading,
         lastSyncTime,
-        refreshFromServer
+        refreshFromServer,
+        resetAllData
     } = useStore();
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [isImporting, setIsImporting] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
     const fileInputRef = useRef(null);
 
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        await refreshFromServer();
-        setIsRefreshing(false);
+    // Password modal state
+    const [passwordModal, setPasswordModal] = useState({
+        isOpen: false,
+        action: null, // 'import' or 'reset'
+        title: '',
+        message: ''
+    });
+
+    // Open password modal for Import (download CSV)
+    const handleImportClick = () => {
+        setPasswordModal({
+            isOpen: true,
+            action: 'import',
+            title: 'Download Backup',
+            message: 'Enter admin password to download a backup of all Firebase data as CSV.'
+        });
     };
 
-    const handleImportCSV = async (e) => {
+    // Open password modal for Reset
+    const handleResetClick = () => {
+        setPasswordModal({
+            isOpen: true,
+            action: 'reset',
+            title: 'Reset Database',
+            message: '⚠️ This will DELETE ALL DATA from Firebase and reset the app. This action cannot be undone!'
+        });
+    };
+
+    // Handle password submission
+    const handlePasswordSubmit = async (password) => {
+        if (password !== ADMIN_PASSWORD) {
+            alert('❌ Incorrect password');
+            return;
+        }
+
+        setPasswordModal({ ...passwordModal, isOpen: false });
+
+        if (passwordModal.action === 'import') {
+            // Download CSV
+            setIsExporting(true);
+            try {
+                await exportAllDataToCSV();
+                alert('✅ Database backup downloaded successfully!');
+            } catch (error) {
+                alert('❌ Failed to export: ' + error.message);
+            } finally {
+                setIsExporting(false);
+            }
+        } else if (passwordModal.action === 'reset') {
+            // Reset database
+            setIsResetting(true);
+            const result = await resetAllData(password);
+            setIsResetting(false);
+
+            if (result.success) {
+                alert('✅ ' + result.message + '\n\nRefreshing page...');
+                window.location.reload();
+            } else {
+                alert('❌ ' + result.message);
+            }
+        }
+    };
+
+    const closePasswordModal = () => {
+        setPasswordModal({ ...passwordModal, isOpen: false });
+    };
+
+    // EXPORT: Upload CSV to restore database
+    const handleExportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleExportFile = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -36,14 +106,6 @@ const Summary = () => {
             return;
         }
 
-        const confirmed = window.confirm(
-            '⚠️ Importing a CSV will OVERWRITE all existing data (items, orders, users).\n\nAre you sure you want to continue?'
-        );
-
-        if (!confirmed) {
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            return;
-        }
 
         setIsImporting(true);
         try {
@@ -55,12 +117,19 @@ const Summary = () => {
                 alert(`❌ ${result.message}`);
             }
         } catch (error) {
-            alert('❌ Failed to import CSV: ' + error.message);
+            alert('❌ Failed to restore data: ' + error.message);
         } finally {
             setIsImporting(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await refreshFromServer();
+        setIsRefreshing(false);
+    };
+
     const analytics = useMemo(() => {
         const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
         const totalOrders = orders.length;
@@ -68,7 +137,9 @@ const Summary = () => {
         // Item popularity
         const itemCounts = {};
         orders.forEach(o => {
-            o.items.forEach(i => {
+            // Safety check: ensure items is an array
+            const orderItems = Array.isArray(o.items) ? o.items : [];
+            orderItems.forEach(i => {
                 itemCounts[i.name] = (itemCounts[i.name] || 0) + i.qty;
             });
         });
@@ -273,52 +344,45 @@ const Summary = () => {
                         </button>
                     )}
 
-                    {/* Export to Device - Backup before updating */}
+                    {/* IMPORT: Download CSV backup (password protected) */}
                     <button
-                        onClick={exportAllDataToCSV}
+                        onClick={handleImportClick}
+                        disabled={isExporting}
                         className="fab-btn"
-                        style={{ background: 'var(--success)', padding: '12px 20px' }}
-                        title="Download backup to your device before updating"
+                        style={{ background: 'var(--primary)', padding: '12px 20px' }}
+                        title="Download database backup as CSV (requires password)"
                     >
-                        <Download size={18} /> Export to Device
+                        <Download size={18} /> {isExporting ? 'Downloading...' : 'Export'}
                     </button>
 
-                    {/* Import from Device - Restore after updating */}
+                    {/* EXPORT: Upload CSV to restore */}
                     <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="fab-btn"
+                        onClick={handleExportClick}
                         disabled={isImporting}
+                        className="fab-btn"
                         style={{ background: 'var(--warning)', padding: '12px 20px' }}
-                        title="Upload data from your device after updating"
+                        title="Upload CSV file to restore database"
                     >
-                        <Upload size={18} /> {isImporting ? 'Restoring...' : 'Import from Device'}
+                        <Upload size={18} /> {isImporting ? 'Restoring...' : 'Import'}
                     </button>
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept=".csv"
-                        onChange={handleImportCSV}
+                        onChange={handleExportFile}
                         style={{ display: 'none' }}
                     />
 
-                    {orders.length > 0 && (
-                        <>
-                            <button
-                                onClick={exportOrdersToCSV}
-                                className="fab-btn"
-                                style={{ background: 'var(--primary)', padding: '12px 20px' }}
-                            >
-                                <Download size={18} /> Export Orders
-                            </button>
-                            <button
-                                onClick={exportItemsToCSV}
-                                className="fab-btn"
-                                style={{ background: 'var(--secondary)', padding: '12px 20px' }}
-                            >
-                                <Download size={18} /> Export Inventory
-                            </button>
-                        </>
-                    )}
+                    {/* RESET: Clear all data (password protected) */}
+                    <button
+                        onClick={handleResetClick}
+                        disabled={isResetting}
+                        className="fab-btn"
+                        style={{ background: 'var(--error)', padding: '12px 20px' }}
+                        title="Reset all data (requires password)"
+                    >
+                        <Trash2 size={18} /> {isResetting ? 'Resetting...' : 'Reset'}
+                    </button>
                 </div>
             </div>
 
@@ -399,7 +463,7 @@ const Summary = () => {
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>+₹{o.total}</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{o.items.length} Items</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{Array.isArray(o.items) ? o.items.length : 0} Items</div>
                                 </div>
                             </div>
                         ))}
@@ -412,6 +476,14 @@ const Summary = () => {
                 isOpen={!!selectedOrder}
                 onClose={() => setSelectedOrder(null)}
                 order={selectedOrder}
+            />
+
+            <PasswordModal
+                isOpen={passwordModal.isOpen}
+                onClose={closePasswordModal}
+                onSubmit={handlePasswordSubmit}
+                title={passwordModal.title}
+                message={passwordModal.message}
             />
         </div>
     );

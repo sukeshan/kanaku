@@ -4,13 +4,12 @@ import { getFirestore, doc, setDoc, getDoc, onSnapshot, enableMultiTabIndexedDbP
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDTyD59evK11cox0GUBP9WK09xNtTjNnqs",
-    authDomain: "kanaku-2a555.firebaseapp.com",
-    projectId: "kanaku-2a555",
-    storageBucket: "kanaku-2a555.firebasestorage.app",
-    messagingSenderId: "839616414910",
-    appId: "1:839616414910:web:31e47d42af7f33b54b0aef",
-    measurementId: "G-M58YB5TBKF"
+    apiKey: "AIzaSyCQkC-ZwnR15fd8TyZ5XWfwolalnsH9_oU",
+    authDomain: "kanaku-e1608.firebaseapp.com",
+    projectId: "kanaku-e1608",
+    storageBucket: "kanaku-e1608.firebasestorage.app",
+    messagingSenderId: "645693074522",
+    appId: "1:645693074522:web:fa1dcc4f7997c100ef7c63"
 };
 
 // Initialize Firebase
@@ -86,6 +85,26 @@ export const subscribeToFirestore = (callback) => {
     }, (error) => {
         console.error('Firestore subscription error:', error);
     });
+};
+
+/**
+ * Delete all data from Firestore
+ * @returns {Promise<Object>}
+ */
+export const deleteFromFirestore = async () => {
+    try {
+        const docRef = doc(db, DATA_COLLECTION, DATA_DOC);
+        await setDoc(docRef, {
+            items: [],
+            orders: [],
+            users: [],
+            updatedAt: new Date().toISOString()
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Firestore delete error:', error);
+        return { success: false, error: error.message };
+    }
 };
 
 export { db };

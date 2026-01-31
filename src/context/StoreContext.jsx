@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { generateUnifiedCSV, downloadCSV, readCSVFile, parseUnifiedCSV } from '../utils/csvUtils';
-import { saveToFirestore, loadFromFirestore, subscribeToFirestore } from '../utils/firebase';
+import { saveToFirestore, loadFromFirestore, subscribeToFirestore, deleteFromFirestore } from '../utils/firebase';
 
 const StoreContext = createContext();
 
@@ -38,6 +38,7 @@ export const StoreProvider = ({ children }) => {
   const saveTimerRef = useRef(null);
   const dataRef = useRef({ items, orders, users });
   const isInitialLoad = useRef(true);
+  const isFromSubscription = useRef(false); // Track if update came from subscription
 
   // Keep dataRef updated
   useEffect(() => {
@@ -142,11 +143,14 @@ export const StoreProvider = ({ children }) => {
     const unsubscribe = subscribeToFirestore((data) => {
       // Only update if data is different (prevent loop)
       if (data && data.updatedAt !== lastSyncTime?.toISOString()) {
+        isFromSubscription.current = true; // Mark this update as from subscription
         setItems(data.items || []);
         setOrders(data.orders || []);
         setUsers(data.users || INITIAL_USERS);
         setLastSyncTime(new Date(data.updatedAt));
         setIsCloudConnected(true);
+        // Reset flag after a short delay to allow the state updates to complete
+        setTimeout(() => { isFromSubscription.current = false; }, 100);
       }
     });
 
@@ -191,9 +195,9 @@ export const StoreProvider = ({ children }) => {
     }, SAVE_DEBOUNCE_DELAY);
   }, []);
 
-  // Trigger save whenever data changes
+  // Trigger save whenever data changes (but not from subscription updates)
   useEffect(() => {
-    if (!isLoading && !isInitialLoad.current) {
+    if (!isLoading && !isInitialLoad.current && !isFromSubscription.current) {
       debouncedSaveToCloud();
     }
   }, [items, orders, users, isLoading, debouncedSaveToCloud]);
@@ -269,7 +273,6 @@ export const StoreProvider = ({ children }) => {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
       items: orderItems,
-      total,
       total,
       user: currentUser || { id: 'unknown', name: 'Unknown', avatar: '👤' },
       device: getDeviceName(),
@@ -350,9 +353,10 @@ export const StoreProvider = ({ children }) => {
       const date = new Date(order.timestamp);
       const dateStr = date.toLocaleDateString('en-IN');
       const timeStr = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      const itemNames = order.items.map(i => i.name).join('; ');
-      const quantities = order.items.map(i => i.qty).join('; ');
-      const prices = order.items.map(i => `₹${i.price}`).join('; ');
+      const orderItems = Array.isArray(order.items) ? order.items : [];
+      const itemNames = orderItems.map(i => i.name).join('; ');
+      const quantities = orderItems.map(i => i.qty).join('; ');
+      const prices = orderItems.map(i => `₹${i.price}`).join('; ');
 
       return [
         order.id,
@@ -424,34 +428,62 @@ export const StoreProvider = ({ children }) => {
   // Import data from unified CSV file
   const importDataFromCSV = useCallback(async (file) => {
     try {
+      console.log('Starting CSV import...');
       const content = await readCSVFile(file);
+      console.log('CSV content loaded, length:', content.length);
+
       const data = parseUnifiedCSV(content);
+      console.log('Parsed data:', {
+        items: data.items?.length || 0,
+        orders: data.orders?.length || 0,
+        users: data.users?.length || 0
+      });
 
-      if (data.items && data.items.length > 0) {
-        setItems(data.items);
+      // Validate parsed data
+      if (!data.items?.length && !data.orders?.length && !data.users?.length) {
+        return { success: false, message: 'No valid data found in CSV. Make sure the file has [ITEMS], [ORDERS], or [USERS] sections.' };
       }
 
-      if (data.orders && data.orders.length > 0) {
-        setOrders(data.orders);
+      const newItems = data.items?.length > 0 ? data.items : items;
+      const newOrders = data.orders?.length > 0 ? data.orders : orders;
+      const newUsers = data.users?.length > 0 ? data.users : users;
+
+      // Update state
+      if (data.items?.length > 0) {
+        setItems(newItems);
+      }
+      if (data.orders?.length > 0) {
+        setOrders(newOrders);
+      }
+      if (data.users?.length > 0) {
+        setUsers(newUsers);
+        setCurrentUser(newUsers[0]);
       }
 
-      if (data.users && data.users.length > 0) {
-        setUsers(data.users);
-        setCurrentUser(data.users[0]);
-      }
+      // IMPORTANT: Also save to localStorage for immediate persistence
+      // This ensures data is available immediately after reload
+      localStorage.setItem('kanaku_items', JSON.stringify(newItems));
+      localStorage.setItem('kanaku_orders', JSON.stringify(newOrders));
+      localStorage.setItem('kanaku_users', JSON.stringify(newUsers));
+      console.log('Saved to localStorage');
+
+      console.log('State updated, saving to Firestore...');
 
       // Force immediate save to Firestore
       const result = await saveToFirestore({
-        items: data.items || items,
-        orders: data.orders || orders,
-        users: data.users || users
+        items: newItems,
+        orders: newOrders,
+        users: newUsers
       });
+
+      console.log('Firestore save result:', result);
 
       if (result.success) {
         setLastSyncTime(new Date());
+        return { success: true, message: `Imported ${data.items?.length || 0} items, ${data.orders?.length || 0} orders, ${data.users?.length || 0} users` };
+      } else {
+        return { success: false, message: 'Failed to save to Firebase: ' + (result.error || 'Unknown error') };
       }
-
-      return { success: true, message: `Imported ${data.items?.length || 0} items, ${data.orders?.length || 0} orders, ${data.users?.length || 0} users` };
     } catch (error) {
       console.error('CSV import error:', error);
       return { success: false, message: 'Failed to import CSV: ' + error.message };
@@ -484,6 +516,40 @@ export const StoreProvider = ({ children }) => {
     return false;
   }, []);
 
+  // Reset all data with password protection
+  const resetAllData = useCallback(async (password) => {
+    const RESET_PASSWORD = 'admin';
+
+    if (password !== RESET_PASSWORD) {
+      return { success: false, message: 'Incorrect password' };
+    }
+
+    try {
+      // Clear localStorage
+      localStorage.removeItem('kanaku_items');
+      localStorage.removeItem('kanaku_orders');
+      localStorage.removeItem('kanaku_users');
+
+      // Delete from Firestore
+      const result = await deleteFromFirestore();
+
+      if (result.success) {
+        // Reset state to initial values
+        setItems(INITIAL_ITEMS);
+        setOrders([]);
+        setUsers(INITIAL_USERS);
+        setCurrentUser(INITIAL_USERS[0]);
+        setLastSyncTime(new Date());
+        return { success: true, message: 'All data has been reset' };
+      } else {
+        return { success: false, message: 'Failed to reset Firebase data' };
+      }
+    } catch (error) {
+      console.error('Reset error:', error);
+      return { success: false, message: 'Reset failed: ' + error.message };
+    }
+  }, []);
+
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({
     items,
@@ -509,8 +575,9 @@ export const StoreProvider = ({ children }) => {
     exportAllDataToCSV,
     importDataFromCSV,
     syncWithServer: syncWithCloud,
-    refreshFromServer: refreshFromCloud
-  }), [items, orders, users, currentUser, isLoading, isCloudConnected, lastSyncTime, isSaving, addItem, addOrder, updateStock, setStockValue, deleteItem, editItem, addUser, editUser, deleteUser, exportOrdersToCSV, exportItemsToCSV, exportAllDataToCSV, importDataFromCSV, syncWithCloud, refreshFromCloud]);
+    refreshFromServer: refreshFromCloud,
+    resetAllData
+  }), [items, orders, users, currentUser, isLoading, isCloudConnected, lastSyncTime, isSaving, addItem, addOrder, updateStock, setStockValue, deleteItem, editItem, addUser, editUser, deleteUser, exportOrdersToCSV, exportItemsToCSV, exportAllDataToCSV, importDataFromCSV, syncWithCloud, refreshFromCloud, resetAllData]);
 
   return (
     <StoreContext.Provider value={contextValue}>

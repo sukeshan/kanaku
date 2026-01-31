@@ -20,7 +20,8 @@ const AnalyticsHub = () => {
         // Total items sold
         let totalItemsSold = 0;
         orders.forEach(order => {
-            order.items.forEach(item => {
+            const orderItems = Array.isArray(order.items) ? order.items : [];
+            orderItems.forEach(item => {
                 totalItemsSold += item.qty;
             });
         });

@@ -40,7 +40,8 @@ const DayDetail = ({ date, onBack }) => {
         // Item breakdown
         const itemCounts = {};
         dayOrders.forEach(o => {
-            o.items.forEach(i => {
+            const orderItems = Array.isArray(o.items) ? o.items : [];
+            orderItems.forEach(i => {
                 if (!itemCounts[i.name]) {
                     itemCounts[i.name] = { count: 0, revenue: 0 };
                 }
@@ -283,7 +284,7 @@ const DayDetail = ({ date, onBack }) => {
                                             })}
                                         </div>
                                         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                            {order.items.map(i => `${i.name} (${i.qty})`).join(', ')}
+                                            {(Array.isArray(order.items) ? order.items : []).map(i => `${i.name} (${i.qty})`).join(', ')}
                                         </div>
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>
                                             by {order.user.name} {order.device && `• ${order.device}`}
@@ -294,7 +295,7 @@ const DayDetail = ({ date, onBack }) => {
                                             ₹{order.total}
                                         </div>
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                            {order.items.length} items
+                                            {Array.isArray(order.items) ? order.items.length : 0} items
                                         </div>
                                     </div>
                                 </div>
