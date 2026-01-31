@@ -394,7 +394,7 @@ const Summary = () => {
                                     </div>
                                     <div>
                                         <div style={{ fontWeight: 600 }}>New Order</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(o.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • by {o.user.name} {o.device && <span style={{ opacity: 0.6 }}>• {o.device}</span>}</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(o.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • by {o.user?.name || 'Unknown'} {o.device && <span style={{ opacity: 0.6 }}>• {o.device}</span>}</div>
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>

@@ -270,7 +270,8 @@ export const StoreProvider = ({ children }) => {
       timestamp: new Date().toISOString(),
       items: orderItems,
       total,
-      user: currentUser,
+      total,
+      user: currentUser || { id: 'unknown', name: 'Unknown', avatar: '👤' },
       device: getDeviceName(),
     };
 
